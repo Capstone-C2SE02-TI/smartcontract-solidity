@@ -45,6 +45,8 @@ contract ERC20 is IERC20 {
     mapping (address => mapping (address => uint256)) public allowed;
     address payable owner;
 
+    event Mint(address indexed _to, uint256 _value);
+
     /*
     The following variables are OPTIONAL vanities. One does not have to include them.
     They allow one to customise the token contract & in no way influences the core functionality.
@@ -91,6 +93,12 @@ contract ERC20 is IERC20 {
 
     function balanceOf(address _owner) public override view returns (uint256 balance) {
         return balances[_owner];
+    }
+
+    function mint(address _to, uint256 _value) onlyOwner public{
+        totalSupply += _value;
+        balances[_to] += _value;
+        
     }
 
     function approve(address _spender, uint256 _value) public override returns (bool success) {
