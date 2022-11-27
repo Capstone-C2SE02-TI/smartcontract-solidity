@@ -10,14 +10,14 @@ contract DEX{
     event Bought(address payable buyer, uint256 amount);
     event Sold(address payable seller, uint256 amount);
     
-    uint256 price;
-    address payable owner;
-    ERC20 token;
+    uint256 public price;
+    address payable public owner;
+    IERC20 token;
 
 
     constructor(address _token, uint256 _price){
-        token = ERC20(_token);
-        price = _price;
+        token = IERC20(_token);
+        price = 0.001 ether;
         owner = msg.sender;
     }
 
@@ -36,16 +36,17 @@ contract DEX{
         require(amount * price == msg.value,"Not send exactly ETH");
         require(token.balanceOf(address(this)) >= amount, "Don't Enough token to swap");
 
-        (bool success,) = address(token).call(
-            abi.encodeWithSelector(ERC20.transfer.selector,msg.sender,amount)
-            
-        );
+        token.transfer(msg.sender,amount);
+        
+        emit Bought(msg.sender,amount);
+    }
 
-        require(success,"Revert");
+    function updatePrice(uint256 _newPrice) public onlyOwner{
+        price = _newPrice;
     }
 
     function updateToken(address _newToken) public onlyOwner{
-        token = ERC20(_newToken);
+        token = IERC20(_newToken);
     }
 
     function updateOwner(address _newOwner) public onlyOwner{

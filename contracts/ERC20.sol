@@ -1,5 +1,4 @@
 
-// https://eips.ethereum.org/EIPS/eip-20
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.8.0;
 
@@ -37,7 +36,7 @@ interface IERC20 {
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
 
-contract ERC20 is IERC20 {
+contract TI is IERC20 {
 
     uint256 public totalSupply;
     uint256 constant private MAX_UINT256 = 2**256 - 1;
