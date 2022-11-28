@@ -1,6 +1,6 @@
 // https://eips.ethereum.org/EIPS/eip-20
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.5.0 <0.8.0;
+pragma solidity 0.8.0;
 
 import "./ERC20.sol";
 
@@ -18,7 +18,7 @@ contract DEX{
     constructor(address _token, uint256 _price){
         token = IERC20(_token);
         price = 0.001 ether;
-        owner = msg.sender;
+        owner = payable(msg.sender);
     }
 
     modifier onlyOwner(){
@@ -38,7 +38,7 @@ contract DEX{
 
         token.transfer(msg.sender,amount);
         
-        emit Bought(msg.sender,amount);
+        emit Bought(payable(msg.sender),amount);
     }
 
     function updatePrice(uint256 _newPrice) public onlyOwner{
