@@ -2,12 +2,8 @@
 pragma solidity 0.8.0;
 
 import "./ERC20.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/structs/EnumerableSet.sol";
 contract premiumSubsription{
 
-    event Bought(address payable buyer, uint256 amount);
-
-    uint256 public premiumPrice;
     address payable public owner;
     IERC20 public paymenToken;
 
@@ -18,18 +14,23 @@ contract premiumSubsription{
         bool isValid;
     }
     
+    struct premiumMetadata{
+        uint256 expriedTime;
+        uint24 price;
+    }
+        // level
+    mapping(uint8 => premiumMetadata) public premiumLevel;
     mapping(address => subcriptionMetadata) public premiumUsers;
-    constructor(address _paymentToken, uint256 _premiumPrice){
+
+    constructor(address _paymentToken){
         owner = payable(msg.sender);
         paymenToken = IERC20(_paymentToken);
-        premiumPrice = 0.001 ether;
 
-        expriedTime[1] = 30  * (1 days);
-        expriedTime[2] = 180 * (1 days);
-        expriedTime[3] = 360 * (1 days);
+        premiumLevel[1] = premiumMetadata(30*(1 days), 99);
+        premiumLevel[2] = premiumMetadata(180*(1 days), 560);
+        premiumLevel[3] = premiumMetadata(360*(1 days), 899);
     }
-// Level subcription => expried time
-    mapping(uint8 => uint256) expriedTime;
+
     modifier onlyOwner(){
         require(msg.sender == owner,'Only owner');
         _;
@@ -40,15 +41,14 @@ contract premiumSubsription{
         return premiumUsers[_user].endTime > block.timestamp && premiumUsers[_user].isValid == true;
     }
 
-    function upgradePremium(uint8 _level) payable public{
-        
-        paymenToken.transferFrom(msg.sender, address(this) , premiumPrice);
+    function upgradePremium(uint8 _level) public{
+        paymenToken.transferFrom(msg.sender, address(this) , premiumLevel[_level].price);
 
-        premiumUsers[msg.sender] = subcriptionMetadata(msg.sender,block.timestamp, expriedTime[_level], true);
+        premiumUsers[msg.sender] = subcriptionMetadata(msg.sender,block.timestamp, block.timestamp + premiumLevel[_level].expriedTime, true);
         
     }
 
-    function setPremiumUserStatus(address _user, bool _premiumStatus) public onlyOwner{
+    function updateValidUserStatus(address _user, bool _premiumStatus) public onlyOwner{
         premiumUsers[_user].isValid = _premiumStatus;
     }
 
@@ -60,8 +60,8 @@ contract premiumSubsription{
         owner = _newOwner;
     }
 
-    function updatePrice(uint256 _newPrice) public onlyOwner{
-        premiumPrice = _newPrice;
+    function updatePremiumLevel(premiumMetadata memory __newMedata,uint8 _level)public onlyOwner{
+        premiumLevel[_level] = __newMedata;
     }
 
     function getExpriedTime(address _user) public view returns(uint256){
