@@ -17,7 +17,7 @@ contract DEX{
 
     constructor(address _token, uint256 _price){
         token = IERC20(_token);
-        price = 0.001 ether;
+        price = _price;
         owner = payable(msg.sender);
     }
 
