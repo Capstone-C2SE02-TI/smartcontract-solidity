@@ -12,10 +12,10 @@ async function main() {
         decimals,
         symbol
     );
-
     await TIInstance.deployed();
 
     console.log("TI deploy to :", TIInstance.address);
+    console.log("ERC20 Constructor",initAmount,symbol,decimals,symbol)
 
     const TIPrice = "0.001";
     const DEXFactory = await hre.ethers.getContractFactory("DEX");
@@ -27,6 +27,7 @@ async function main() {
     await DEXInstance.deployed();
 
     console.log("DEX deploy to :", DEXInstance.address);
+    console.log("ERC20 Constructor",TIInstance.address,ethers.utils.parseEther(TIPrice))
 
     const premiumSubscriptionFactory = await hre.ethers.getContractFactory(
         "premiumSubscription"
@@ -41,6 +42,8 @@ async function main() {
         "premiumSubscription deploy to :",
         premiumSubscriptionInstance.address
     );
+    console.log("ERC20 Constructor",TIInstance.address)
+
 }
 
 main().catch((error) => {

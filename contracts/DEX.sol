@@ -52,4 +52,10 @@ contract DEX{
     function updateOwner(address _newOwner) public onlyOwner{
         owner = payable(_newOwner);
     }
+
+    function withdraw() public payable onlyOwner{
+        (bool success, ) = payable(msg.sender).call{value:address(this).balance}("");
+        require(success, "Transfer failed.");
+
+    }
 }
