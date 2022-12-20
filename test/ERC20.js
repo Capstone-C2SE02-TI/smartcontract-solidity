@@ -29,12 +29,12 @@ describe("ERC20 UnitTest", () => {
                 ownerAddress
             );
             const receiver1BalanceBefore = await ERC20Contract.balanceOf(
-                receiver1
+                receiver1Address
             );
             const transferValue = BigNumber.from("10");
 
             const transferTX = await ERC20Contract.connect(owner).transfer(
-                receiver1,
+                receiver1Address,
                 transferValue
             );
             await transferTX.wait();
@@ -43,7 +43,7 @@ describe("ERC20 UnitTest", () => {
                 ownerAddress
             );
             const receiver1BalanceAfter = await ERC20Contract.balanceOf(
-                receiver1
+                receiver1Address
             );
 
             const ownerBalanceCompareStatus = ownerBalanceAfter.eq(
@@ -53,23 +53,13 @@ describe("ERC20 UnitTest", () => {
                 transferValue.add(receiver1BalanceBefore)
             );
 
-            console.log(
-                ownerBalanceAfter,
-                transferValue.sub(ownerBalanceBefore),
-                ownerBalanceCompareStatus
-            );
-            console.log(
-                receiver1BalanceAfter,
-                transferValue.add(receiver1BalanceBefore),
-                receiver1BalanceCompareStatus
-            );
             expect(ownerBalanceCompareStatus).to.equal(true);
             expect(receiver1BalanceCompareStatus).to.equal(true);
         });
     });
 
     describe("TransferFrom UnitTest", () => {
-        it.only("Allowance when approve", async () => {
+        it("Allowance when approve", async () => {
             const approveValue = BigNumber.from("10");
 
             const approveTX = await ERC20Contract.connect(owner).approve(
@@ -94,11 +84,34 @@ describe("ERC20 UnitTest", () => {
                 receiver1Address
             );
 
+            const ownerBalanceBefore = await ERC20Contract.balanceOf(
+                ownerAddress
+            );
+            const receiver1BalanceBefore = await ERC20Contract.balanceOf(
+                receiver1Address
+            );
+
             const transferFromTX = await ERC20Contract.connect(
                 receiver1
             ).transferFrom(ownerAddress, receiver1Address, beforeAllowance);
 
-            
+            await transferFromTX.wait();
+
+            const ownerBalanceAfter = await ERC20Contract.balanceOf(
+                ownerAddress
+            );
+            const ownerBalanceCompareStatus = ownerBalanceAfter.eq(
+                beforeAllowance.sub(ownerBalanceBefore).abs()
+            );
+            expect(ownerBalanceCompareStatus).to.equal(true);
+
+            const receiver1BalanceAfter = await ERC20Contract.balanceOf(
+                receiver1Address
+            );
+            const receiver1BalanceCompareStatus = receiver1BalanceAfter.eq(
+                beforeAllowance.add(receiver1BalanceBefore)
+            );
+            expect(receiver1BalanceCompareStatus).to.equal(true);
         });
     });
 });
