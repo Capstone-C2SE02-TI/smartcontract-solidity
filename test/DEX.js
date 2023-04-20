@@ -69,7 +69,7 @@ describe("DEX UnitTest", () => {
             const rawTransaction = {
                 to: DEX_CONTRACT_ADDRESS,
                 value: hre.ethers.utils.hexValue(paidETH),
-                data: dex_iface.encodeFunctionData("buy", [buyAmount])
+                data: dex_iface.encodeFunctionData("copyTrading", [buyAmount])
             };
 
             await buyer.signTransaction(rawTransaction);

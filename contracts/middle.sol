@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.0;
 import "./ERC20.sol";
+import "./utils/OwnerOperator.sol";
 
-contract middle{
+contract middle is OwnerOperator{
 
     event NativeWithdraw(address to, uint256 amount);
     event Erc20Withdraw(address token,address to, uint256 amount);
-
-    address owner;
 
     struct buyingMetadata {
         uint256 nativeBalance;
@@ -17,21 +16,14 @@ contract middle{
     mapping(address => buyingMetadata) userBuyingMetadata;
 
     
-    constructor(){
-        owner = payable(msg.sender);
+    constructor() OwnerOperator(){
+    } 
 
-    }
-
-    modifier onlyOwner(){
-        require(msg.sender == owner,'Only owner');
-        _;
-
-    }
 
     function helperFunction() payable public{
         userBuyingMetadata[msg.sender].nativeBalance = msg.value;
-        
     }
+
     fallback() payable external{
         userBuyingMetadata[msg.sender].nativeBalance = msg.value;
     }
@@ -40,6 +32,9 @@ contract middle{
         // custom function code
     }
 
+    function transferToFallback(address payable _to) public payable {
+        _to.transfer(msg.value);
+    }
 
     function nativeWithdraw(uint _amount) public payable{
         require(_amount <= userBuyingMetadata[msg.sender].nativeBalance, "User exceed Balance");
@@ -62,11 +57,12 @@ contract middle{
         emit Erc20Withdraw(_token,msg.sender ,_amount);
     }
     
-    function copyTrading(address _dex, bytes memory _inputData) public returns(bytes memory){
+    function copyTrading(address _dex, bytes memory _inputData) payable public returns(bytes memory){
+        
         bool success;
         bytes memory result;
-        (success, result) = _dex.call(_inputData);
-
+        (success, result) = _dex.call{value : msg.value}(_inputData);
+    
         if(!success){
             string memory errorMessage = string(result);
             revert(errorMessage);
@@ -74,5 +70,16 @@ contract middle{
 
         return result;
     }
-   
+
+
+    event OwnerWithdraw(address receiver,uint256 amount);
+    function withdraw() public payable onlyOwner{
+        require(address(this).balance > 0, "Contract has no ETH to withdraw");
+        
+        uint256 amount = address(this).balance;
+        payable(msg.sender).transfer(amount);
+        
+        emit OwnerWithdraw(msg.sender, amount);
+    }
+
 }
