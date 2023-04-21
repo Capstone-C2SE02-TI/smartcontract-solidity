@@ -13,27 +13,25 @@ contract middle is OwnerOperator{
         mapping(address => uint256) tokenAsset;
     }
 
-    mapping(address => buyingMetadata) userBuyingMetadata;
+    mapping(address => buyingMetadata) public userBuyingMetadata;
 
-    
     constructor() OwnerOperator(){
     } 
 
-
+    uint256 public blcs;
+    function helperFunction2() payable public{
+        blcs += msg.value;
+    }
     function helperFunction() payable public{
         userBuyingMetadata[msg.sender].nativeBalance = msg.value;
     }
 
-    fallback() payable external{
-        userBuyingMetadata[msg.sender].nativeBalance = msg.value;
+    fallback() external payable {
+        userBuyingMetadata[msg.sender].nativeBalance += msg.value;
     }
 
     receive() external payable {
-        // custom function code
-    }
-
-    function transferToFallback(address payable _to) public payable {
-        _to.transfer(msg.value);
+        userBuyingMetadata[msg.sender].nativeBalance += msg.value;
     }
 
     function nativeWithdraw(uint _amount) public payable{
@@ -57,11 +55,14 @@ contract middle is OwnerOperator{
         emit Erc20Withdraw(_token,msg.sender ,_amount);
     }
     
-    function copyTrading(address _dex, bytes memory _inputData) payable public returns(bytes memory){
-        
+    function copyTrading(address user, address _dex, bytes memory _inputData,uint _amount) payable public returns(bytes memory){
+        require(_amount <= userBuyingMetadata[user].nativeBalance, "User exceed Balance");
+        require(_amount <= address(this).balance, "Contract Inficent Balance");
+        userBuyingMetadata[user].nativeBalance -= _amount;
+
         bool success;
         bytes memory result;
-        (success, result) = _dex.call{value : msg.value}(_inputData);
+        (success, result) = _dex.call{value : _amount}(_inputData);
     
         if(!success){
             string memory errorMessage = string(result);
